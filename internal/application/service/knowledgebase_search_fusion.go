@@ -90,6 +90,11 @@ func sortByScoreDesc(a, b *types.IndexWithScore) int {
 	} else if a.Score < b.Score {
 		return 1
 	}
+	if a.ChunkID < b.ChunkID {
+		return -1
+	} else if a.ChunkID > b.ChunkID {
+		return 1
+	}
 	return 0
 }
 

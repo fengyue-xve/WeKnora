@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"slices"
 	"testing"
@@ -194,6 +195,27 @@ func TestBestRanks_IsOrderInvariant(t *testing.T) {
 	require.Equal(t, want, bestRanks(rankLists(false)))
 	require.Equal(t, want, bestRanks(rankLists(true)),
 		"shuffling the lists must not change the ranks")
+}
+
+func TestBestRanks_UsesDeterministicChunkIDTieBreak(t *testing.T) {
+	t.Parallel()
+
+	hits := make([]*types.IndexWithScore, 16)
+	for i := range hits {
+		hits[i] = &types.IndexWithScore{
+			ChunkID: fmt.Sprintf("chunk-%02d", i),
+			Score:   1,
+		}
+	}
+
+	want := make(map[string]int, len(hits))
+	for i, hit := range hits {
+		want[hit.ChunkID] = i + 1
+	}
+	for i := 0; i < 20; i++ {
+		got := bestRanks([][]*types.IndexWithScore{hits})
+		require.Equal(t, want, got)
+	}
 }
 
 // The same property end to end: the list that finishes last must not push its
